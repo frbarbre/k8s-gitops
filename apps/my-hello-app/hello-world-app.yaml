@@ -63,9 +63,9 @@ spec:
             - containerPort: 3000
           env:
             - name: MESSAGE
-              value: "Hello my Friends!"
+              value: "Hello my from GitOps!"
             - name: NEXT_PUBLIC_MESSAGE
-              value: "Hello from Kubernetes Client with GitOps Setup!"
+              value: "Hello Martin"
             - name: API_URL
               value: "http://api-service:8000" # ← Now uses service name
 ---
