@@ -66,7 +66,7 @@ spec:
               value: "Hello my from GitOps!"
             - name: NEXT_PUBLIC_MESSAGE
               value: "Hello beee!"
-            - name: API_URL
+            - name: NEXT_PUBLIC_API_URL
               value: "http://api-service:8000" # ← Now uses service name
 ---
 # Frontend Service (LoadBalancer - Externally accessible)
