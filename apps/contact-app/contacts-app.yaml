@@ -1,0 +1,132 @@
+# MongoDB Deployment (Internal only)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-deployment
+  labels:
+    app: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:7.0
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: "frbarbre"
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: "your_password"
+            - name: MONGO_INITDB_DATABASE
+              value: "contacts_mongodb"
+          volumeMounts:
+            - name: mongodb-storage
+              mountPath: /data/db
+      volumes:
+        - name: mongodb-storage
+          emptyDir: {} # For development - use PersistentVolume for production
+---
+# MongoDB Service (ClusterIP - Internal only)
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-contacts # This matches your MONGO_URI
+spec:
+  selector:
+    app: mongodb
+  ports:
+    - port: 27017
+      targetPort: 27017
+  type: ClusterIP
+---
+# API Deployment (Internal only)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contacts-go-deployment
+  labels:
+    app: contacts-go
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: contacts-go
+  template:
+    metadata:
+      labels:
+        app: contacts-go
+    spec:
+      containers:
+        - name: contacts-go
+          image: contacts-go:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_NAME
+              value: "contacts_mongodb"
+            - name: MONGO_URI
+              value: "mongodb://frbarbre:your_password@mongodb-contacts:27017/contacts_mongodb?authSource=admin"
+---
+# API Service (ClusterIP - Internal only)
+apiVersion: v1
+kind: Service
+metadata:
+  name: contacts-go-service
+spec:
+  selector:
+    app: contacts-go
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP
+---
+# Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contacts-remix-deployment
+  labels:
+    app: contacts-remix
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: contacts-remix
+  template:
+    metadata:
+      labels:
+        app: contacts-remix
+    spec:
+      containers:
+        - name: contacts-remix
+          image: contacts-remix:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+          env:
+            - name: AUTH_SECRET
+              value: "your_auth_secret"
+            - name: API_URL
+              value: "http://contacts-go-service:8000"
+---
+# Frontend Service (LoadBalancer - Externally accessible)
+apiVersion: v1
+kind: Service
+metadata:
+  name: contacts-remix-service
+spec:
+  selector:
+    app: contacts-remix
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: LoadBalancer
