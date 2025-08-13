@@ -22,9 +22,15 @@ spec:
             - containerPort: 27017
           env:
             - name: MONGO_INITDB_ROOT_USERNAME
-              value: "frbarbre"
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: username
             - name: MONGO_INITDB_ROOT_PASSWORD
-              value: "your_password"
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: password
             - name: MONGO_INITDB_DATABASE
               value: "contacts_mongodb"
           volumeMounts:
@@ -74,7 +80,10 @@ spec:
             - name: DB_NAME
               value: "contacts_mongodb"
             - name: MONGO_URI
-              value: "mongodb://frbarbre:your_password@mongodb-contacts:27017/contacts_mongodb?authSource=admin"
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: mongo-uri
 ---
 # API Service (ClusterIP - Internal only)
 apiVersion: v1
@@ -114,7 +123,10 @@ spec:
             - containerPort: 3000
           env:
             - name: AUTH_SECRET
-              value: "your_auth_secret"
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: auth-secret
             - name: API_URL
               value: "http://contacts-go-service:8000"
 ---
