@@ -65,7 +65,7 @@ spec:
             - name: MESSAGE
               value: "Hello my from GitOps!"
             - name: NEXT_PUBLIC_MESSAGE
-              value: "Hello far!"
+              value: "Hello Next.js!"
             - name: API_URL
               value: "http://api-service:8000" # ← Now uses service name
 ---
